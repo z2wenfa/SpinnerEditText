@@ -1,6 +1,7 @@
 package com.example.z2wenfa.spinneredittextdemo;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
@@ -33,6 +34,15 @@ import java.util.Map;
 
 public class SpinnerEditText<T> extends AppCompatEditText {
     private Context context;
+
+    private boolean popupWindowIsShowing = false;
+
+
+    private ListPopupWindow listPopupWindow;
+    private List<T> itemList = new ArrayList<>();
+    private List<T> realShowItemList = new ArrayList<>();
+    private ArrayAdapter<T> adapter;
+
 
     public SpinnerEditText(Context context) {
         super(context);
@@ -80,6 +90,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
             }
         });
 
+        //默认的点击事件
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -88,8 +99,12 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                 }
             }
         });
+        initDefaultRightIcon();
 
 
+    }
+    //默认设置的右侧图标与点击事件（点击一次显示列表全部内容 再点击一次消失)
+    private void initDefaultRightIcon() {
         setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.vector_drawable_arrowdown, 0);
         int paddingleft = SystemUtil.dp2px(context, 5);
         int paddingright = SystemUtil.dp2px(context, 10);
@@ -115,19 +130,12 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
             }
         });
-
     }
 
 
-    private boolean popupWindowIsShowing = false;
 
 
-    private ListPopupWindow listPopupWindow;
-    private List<T> itemList = new ArrayList<>();
-    private List<T> realShowItemList = new ArrayList<>();
-    private ArrayAdapter<T> adapter;
-
-
+    //初始化PopUpWindow
     private void initOrUpdateListPopupWindow() {
         if (listPopupWindow == null) {
             listPopupWindow = new ListPopupWindow(context);
@@ -192,6 +200,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
     private Map<String, List<T>> map = new HashMap<>();//根据文本值获得对应的集合
 
+    //获得过滤后的列表并且显示
     private List<T> getFilterList(String key, List<T> addList) {
         if (map.get(key) == null) {
             List<T> list = new ArrayList<>();
@@ -325,11 +334,13 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         return selectedItemPosition;
     }
 
+    //---------设置当前选中项
     public void setSelectedItemPosition(int selectedItemPosition) {
         this.selectedItemPosition = selectedItemPosition;
         listPopupWindow.setSelection(selectedItemPosition);
     }
 
+    //---------设置右侧显示的图标与点击事件
     private DrawableLeftListener mLeftListener;
     private DrawableRightListener mRightListener;
 
@@ -375,11 +386,14 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                     }
                 }
 
-                if (mRightListener != null) {
-                    int eventX = (int) event.getX();
-                    if (this.getRight() - eventX < SystemUtil.dp2px(context, 40)) {//这个数字设置成图片的大概宽度
+                if (mRightListener != null && event.getAction() == MotionEvent.ACTION_UP) {
+                    int eventX = (int) event.getRawX();
+                    int eventY = (int) event.getRawY();
+                    Rect rect = new Rect();
+                    getGlobalVisibleRect(rect);
+                    rect.left = rect.right - SystemUtil.dp2px(context, 50);
+                    if (rect.contains(eventX, eventY)) {
                         mRightListener.onDrawableRightClick(this);
-
                         return true;
                     }
                 }
@@ -389,5 +403,10 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         return super.dispatchTouchEvent(event);
     }
 
+
+    //设置右侧图标
+    public void setRightCompoundDrawable(int resId) {
+        setCompoundDrawablesWithIntrinsicBounds(0, 0, resId, 0);
+    }
 
 }
