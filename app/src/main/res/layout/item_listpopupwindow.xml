@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
+    android:minHeight="40dp"
+    android:orientation="vertical">
+
+
+    <TextView
+
+        android:id="@+id/tv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        android:gravity="left|center_vertical"
+        android:minHeight="40dp"
+        android:minWidth="80dp"
+        android:paddingLeft="5dp"
+        android:text="单个条目"
+        android:textSize="12dp" />
+</FrameLayout>

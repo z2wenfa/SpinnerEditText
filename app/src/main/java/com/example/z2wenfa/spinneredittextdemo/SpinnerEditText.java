@@ -1,48 +1,96 @@
 package com.example.z2wenfa.spinneredittextdemo;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.widget.AppCompatEditText;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.ActionMode;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
 import android.widget.ListPopupWindow;
+import android.widget.ListView;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * 一个既可以编辑又可以下拉选中的自定义View
  * 1.获得一个列表内容 在编辑框文本变化时 动态显示相关列表内容 (完成)
  * 2.点击列表内容能够修改编辑框显示文本 同时出发文本修改变化事件 文本修改后光标改到文本末尾 (完成)
  * 3.当Foucs发生变化且是选中时显示相关列表内容(完成)
- * 4.点击选中项触发事件 获得选中的Bean(完成)
+ * 4.点击选中项触发事件 获得选中的Bean
  * <p>
  * Created by z2wenfa on 2017/2/14.
  */
 
 public class SpinnerEditText<T> extends AppCompatEditText {
     private Context context;
+    private int maxHeight;
+    private int childHeight;
 
-    private boolean popupWindowIsShowing = false;
 
+    private DrawableLeftListener mLeftListener;
+    private DrawableRightListener mRightListener;
 
-    private ListPopupWindow listPopupWindow;
-    private List<T> itemList = new ArrayList<>();
-    private List<T> realShowItemList = new ArrayList<>();
-    private ArrayAdapter<T> adapter;
+    final int DRAWABLE_LEFT = 0;
+    final int DRAWABLE_TOP = 1;
+    final int DRAWABLE_RIGHT = 2;
+    final int DRAWABLE_BOTTOM = 3;
 
+    public static final int STATUS_NORMAL = 0;
+    public static final int STATUS_EXCEPTION = 1;
+
+    private boolean isNecessary = false;//是否是必须条件
+    private boolean autoCheckStatusByTextIsEmpty = false;//是否自动判断状态通过判断文本是否异常
+    private int status = STATUS_NORMAL;
+
+    private boolean forbidShowPopOnce = false;//禁止弹出一次Pop选择框
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void autoCheckStatusByTextIsEmpty(Boolean autoCheckStatusByTextIsEmpty) {
+        this.autoCheckStatusByTextIsEmpty = autoCheckStatusByTextIsEmpty;
+        if (TextUtils.isEmpty(getText())) {
+            setStatus(STATUS_EXCEPTION);
+        } else {
+            setStatus(STATUS_NORMAL);
+        }
+    }
+
+    //设置当前SpinnerEdit的状态
+    public void setStatus(int status) {
+        switch (status) {
+            case STATUS_NORMAL:
+                this.status = STATUS_NORMAL;
+                setBackgroundResource(R.drawable.whitebox);
+                break;
+            case STATUS_EXCEPTION:
+                this.status = STATUS_EXCEPTION;
+                setBackgroundResource(R.drawable.whitebox_with_readstroke);
+                break;
+        }
+    }
 
     public SpinnerEditText(Context context) {
         super(context);
@@ -62,15 +110,75 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         init();
     }
 
+
+    @Override
+    public boolean onTextContextMenuItem(int id) {
+        if (id == android.R.id.paste) {
+            return false;
+        }
+        return super.onTextContextMenuItem(id);
+    }
+
     private void init() {
+
+        setLongClickable(false);
+        maxHeight = SystemUtil.dp2px(context, 120);
+        childHeight = SystemUtil.dp2px(context, 40);
         setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);//设置字体大小
+
+
+        this.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+
+//                showPopWindow();
+                return false;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+//                Log.d(TAG, "onPrepareActionMode");
+                return false;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+//                Log.d(TAG, "onActionItemClicked");
+                return false;
+            }
+        });
+
+        this.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+
+//        setOnLongClickListener(new OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                return true;
+//            }
+//        });
+
         //文本变换事件
         addTextChangedListener(new TextWatchAdapter() {
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                setSelectedItem(null);
-                if (listPopupWindow != null && SpinnerEditText.this.hasFocus()) {
-                    showPopUpwindow(charSequence.toString());
+                if (popupWindow != null && SpinnerEditText.this.hasFocus()) {
+                    handler.removeMessages(2);
+                    handler.sendEmptyMessage(2);
+                }
+
+                if (autoCheckStatusByTextIsEmpty) {
+                    if (TextUtils.isEmpty(charSequence.toString())) {
+                        setStatus(STATUS_EXCEPTION);
+                    } else {
+                        setStatus(STATUS_NORMAL);
+                    }
+
                 }
             }
         });
@@ -80,8 +188,8 @@ public class SpinnerEditText<T> extends AppCompatEditText {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
 
-                if (listPopupWindow != null && hasFocus) {
-                    showPopUpwindow(getText().toString());
+                if (popupWindow != null && hasFocus) {
+                    betterShow(getText().toString(), 250);
                 }
 
                 for (OnFocusChangeListener onFocusChangeListener : onFocusChangeListenerList) {
@@ -90,22 +198,19 @@ public class SpinnerEditText<T> extends AppCompatEditText {
             }
         });
 
-        //默认的点击事件
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (listPopupWindow != null && isFocused()) {
-                    showPopUpwindow(getText().toString());
+                if (popupWindow != null && isFocused()) {
+                    betterShow(getText().toString(), 250);
+                } else {
+                    dismissPopupWindow();
                 }
             }
         });
-        initDefaultRightIcon();
 
 
-    }
-    //默认设置的右侧图标与点击事件（点击一次显示列表全部内容 再点击一次消失)
-    private void initDefaultRightIcon() {
-        setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.vector_drawable_arrowdown, 0);
+        setRightCompoundDrawable(R.drawable.vector_drawable_arrowdown);
         int paddingleft = SystemUtil.dp2px(context, 5);
         int paddingright = SystemUtil.dp2px(context, 10);
         setPadding(paddingleft, 0, paddingright, 0);
@@ -115,74 +220,97 @@ public class SpinnerEditText<T> extends AppCompatEditText {
             public void onDrawableRightClick(View view) {
 
 
-                if (listPopupWindow == null) {
+                if (popupWindow == null) {
                     return;
                 }
                 if (popupWindowIsShowing) {
-                    listPopupWindow.dismiss();
+                    popupWindow.dismiss();
                     popupWindowIsShowing = false;
 
                 } else {
                     requestFocus();
-                    showPopUpwindow("");
-                    popupWindowIsShowing = true;
+                    betterShow("", 0);
                 }
-
             }
         });
+
     }
 
-
-
-
-    //初始化PopUpWindow
-    private void initOrUpdateListPopupWindow() {
-        if (listPopupWindow == null) {
-            listPopupWindow = new ListPopupWindow(context);
-            adapter = new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, realShowItemList);
-            listPopupWindow.setAdapter(adapter);
-            listPopupWindow.setAnchorView(this);
-
-            listPopupWindow.setWidth(AbsListView.LayoutParams.WRAP_CONTENT);
-            listPopupWindow.setHeight(AbsListView.LayoutParams.WRAP_CONTENT);
-            listPopupWindow.setModal(false);
-
-            listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-
-                    T t = realShowItemList.get(i);
-                    String selectedContent = t.toString();
-
-                    setSelectedItemPosition(i);
-                    SpinnerEditText.this.setSelectedItem(t);
-                    if (onItemClickListener != null)
-                        onItemClickListener.onItemClick(t, SpinnerEditText.this, view, i, l, selectedContent);
-
-                    if (!realShowItemList.isEmpty()) {
-                        SpinnerEditText.this.setText(selectedContent);
-                        SpinnerEditText.this.setSelection(selectedContent.length());
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(final Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case 1:
+                    dismissPopupWindow();
+                    showPopUpwindow(msg.obj.toString());
+                    popupWindowIsShowing = true;
+                    break;
+                case 2:
+                    setSelectedItem(null);
+//                    getOnFocusChangeListener().onFocusChange(SpinnerEditText.this, true);
+                    if (popupWindow != null && isFocused()) {
+                        betterShow(getText().toString(), 250);
                     } else {
-                        setText("");
+                        dismissPopupWindow();
                     }
-                    listPopupWindow.dismiss();
-                }
-
-
-            });
-
-            listPopupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
-                @Override
-                public void onDismiss() {
-                    //延时设置popupwindow显示状态
-                    handler.sendEmptyMessageDelayed(1, 100);
-                }
-            });
-
-
+                    break;
+                case 3:
+                    dismissPopupWindow();
+                    break;
+                case 4:
+                    popupWindowIsShowing = false;
+                    break;
+            }
         }
-        adapter.notifyDataSetChanged();
+    };
+
+    public void setNecessary(boolean necessary) {
+        isNecessary = necessary;
+    }
+
+    public boolean isNecessary() {
+        return isNecessary;
+    }
+
+    //优化过后的Popupwindo显示方法
+    private void betterShow(String searchStr, long delayTime) {
+
+        if (searchStr.equals("")) {
+            handler.removeMessages(1);
+        }
+
+        if (!handler.hasMessages(1, "")) {
+
+            if (forbidShowPopOnce) {
+                forbidShowPopOnce = false;
+                return;
+            }
+
+            Message message = new Message();
+            message.what = 1;
+            message.obj = searchStr;
+            handler.sendMessageDelayed(message, delayTime);
+        }
+
+    }
+
+    //设置右侧图标
+    public void setRightCompoundDrawable(int resId) {
+
+        int start = SystemUtil.dp2px(getContext(), 0);
+        int end = SystemUtil.dp2px(getContext(), 20);
+        Drawable drawable = null;
+        if (resId > 0) {
+            drawable = getContext().getResources().getDrawable(resId);
+            drawable.setBounds(start, start, end, end);
+        }
+
+        setCompoundDrawables(null, null, drawable, null);
+    }
+
+    private class ViewHolder {
+        TextView itemTextView;
     }
 
     public void setList(String key, List<T> itemList) {
@@ -197,10 +325,8 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         setList("", itemList);
     }
 
-
     private Map<String, List<T>> map = new HashMap<>();//根据文本值获得对应的集合
 
-    //获得过滤后的列表并且显示
     private List<T> getFilterList(String key, List<T> addList) {
         if (map.get(key) == null) {
             List<T> list = new ArrayList<>();
@@ -215,6 +341,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
     //显示当前文本下的列表
     private void showPopUpwindow(String text) {
         if (!needShowSpinner) return;
+
 
         if (itemList.isEmpty()) {
             return;
@@ -237,28 +364,18 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
 
         if (!realShowItemList.isEmpty()) {
-            initOrUpdateListPopupWindow();
-            listPopupWindow.show();
+            updateHeightAndShow();
+
         } else {
-            //隐藏popupwindow
-            handler.sendEmptyMessage(2);
+            handler.sendEmptyMessage(3);
         }
     }
 
-    private Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case 1:
-                    popupWindowIsShowing = false;
-                    break;
-                case 2:
-                    listPopupWindow.dismiss();
-                    break;
-            }
-        }
-    };
+
+    protected void dismissPopupWindow() {
+        if (popupWindow != null)
+            popupWindow.dismiss();
+    }
 
     public interface OnItemClickListener<T> {
         void onItemClick(T t, SpinnerEditText<T> var1, View var2, int position, long var4, String selectContent);
@@ -270,13 +387,11 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         this.onItemClickListener = onItemClickListener;
     }
 
-
     private List<OnFocusChangeListener> onFocusChangeListenerList = new ArrayList<>();
 
     public void addOnFocusChangeListener(OnFocusChangeListener onFocusChangeListener) {
         onFocusChangeListenerList.add(onFocusChangeListener);
     }
-
 
     //获得当前值
     public String getValue() {
@@ -286,7 +401,6 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         }
         return value.trim();
     }
-
 
     private T selectedItem;
 
@@ -334,21 +448,10 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         return selectedItemPosition;
     }
 
-    //---------设置当前选中项
     public void setSelectedItemPosition(int selectedItemPosition) {
         this.selectedItemPosition = selectedItemPosition;
-        listPopupWindow.setSelection(selectedItemPosition);
+//        popupWindow.setSelection(selectedItemPosition);
     }
-
-    //---------设置右侧显示的图标与点击事件
-    private DrawableLeftListener mLeftListener;
-    private DrawableRightListener mRightListener;
-
-    final int DRAWABLE_LEFT = 0;
-    final int DRAWABLE_TOP = 1;
-    final int DRAWABLE_RIGHT = 2;
-    final int DRAWABLE_BOTTOM = 3;
-
 
     public void setDrawableLeftListener(DrawableLeftListener listener) {
         this.mLeftListener = listener;
@@ -366,17 +469,31 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         void onDrawableRightClick(View view);
     }
 
-
     public void dismissRightIcon() {
         setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
 
         setDrawableRightListener(null);
     }
 
-
     @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
+    public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                if (mRightListener != null) {
+
+                    int eventX = (int) event.getRawX();
+                    int eventY = (int) event.getRawY();
+
+                    Rect rect = new Rect();
+                    getGlobalVisibleRect(rect);
+
+                    rect.left = rect.right - SystemUtil.dp2px(context, 48);
+                    if (rect.contains(eventX, eventY)) {
+                        return true;
+                    }
+
+                }
+                return super.onTouchEvent(event);
             case MotionEvent.ACTION_UP:
                 if (mLeftListener != null) {
                     Drawable drawableLeft = getCompoundDrawables()[DRAWABLE_LEFT];
@@ -386,27 +503,259 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                     }
                 }
 
+
                 if (mRightListener != null && event.getAction() == MotionEvent.ACTION_UP) {
+
                     int eventX = (int) event.getRawX();
                     int eventY = (int) event.getRawY();
+
                     Rect rect = new Rect();
                     getGlobalVisibleRect(rect);
-                    rect.left = rect.right - SystemUtil.dp2px(context, 50);
+
+                    rect.left = rect.right - SystemUtil.dp2px(context, 48);
                     if (rect.contains(eventX, eventY)) {
                         mRightListener.onDrawableRightClick(this);
                         return true;
                     }
+
                 }
 
                 break;
+
         }
-        return super.dispatchTouchEvent(event);
+        return super.onTouchEvent(event);
+    }
+
+    //------------------------------初始化Popupwindow ----------------------------
+    private static final int TYPE_WRAP_CONTENT = 0, TYPE_MATCH_PARENT = 1;
+    private boolean popupWindowIsShowing = false;//当前Popupwindow是否正在显示
+    private PopupWindow popupWindow;
+    private List<T> itemList = new ArrayList<>();
+    private List<T> realShowItemList = new ArrayList<>();//过滤后显示的集合
+    private BaseAdapter adapter;
+    private ListView listView;
+    private FrameLayout popupView;
+
+    public List<T> getRealShowItemList() {
+        return realShowItemList;
+    }
+
+    public List<T> getItemList() {
+        return itemList;
     }
 
 
-    //设置右侧图标
-    public void setRightCompoundDrawable(int resId) {
-        setCompoundDrawablesWithIntrinsicBounds(0, 0, resId, 0);
+    private void initOrUpdateListPopupWindow() {
+
+        if (popupWindow == null) {
+
+            popupWindow = new PopupWindow(context);
+            listView = new ListView(context);
+            setVerticalScrollBarEnabled(true);
+            listView.setBackground(getResources().getDrawable(R.drawable.graybox));
+            popupView = new FrameLayout(context);
+            popupView.setBackgroundColor(Color.GRAY);
+            popupView.addView(listView);
+            popupWindow.setContentView(popupView);
+//            popupView.setDescendantFocusability(FOCUS_BLOCK_DESCENDANTS);
+
+            adapter = new BaseAdapter() {
+                @Override
+                public int getCount() {
+                    return realShowItemList.size();
+                }
+
+                @Override
+                public T getItem(int position) {
+                    return realShowItemList.get(position);
+                }
+
+                @Override
+                public long getItemId(int position) {
+                    return position;
+                }
+
+                @Override
+                public View getView(final int position, View convertView, ViewGroup parent) {
+                    ViewHolder holder = null;
+                    if (convertView == null) {
+                        holder = new ViewHolder();
+                        convertView = LayoutInflater.from(context).inflate(R.layout.item_listpopupwindow, null, false);
+                        holder.itemTextView = (TextView) convertView.findViewById(R.id.tv);
+                        convertView.setTag(holder);
+
+
+                    } else {
+                        holder = (ViewHolder) convertView.getTag();
+                    }
+
+                    if (realShowItemList != null) {
+                        final String itemName = realShowItemList.get(position).toString();
+                        if (holder.itemTextView != null) {
+                            holder.itemTextView.setText(itemName);
+                        }
+                    }
+
+                    convertView.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+
+                            T t = realShowItemList.get(position);
+
+                            int i = position;
+                            for (int i1 = 0; i1 < itemList.size(); i1++) {
+                                if (itemList.get(i1).toString().equals(t.toString())) {
+                                    i = i1;
+                                    break;
+                                }
+                            }
+
+                            String selectedContent = t.toString();
+
+                            setSelectedItemPosition(i);
+                            SpinnerEditText.this.setSelectedItem(t);
+                            if (onItemClickListener != null)
+                                onItemClickListener.onItemClick(t, SpinnerEditText.this, v, i, i, selectedContent);
+
+                            forbidShowPopOnce = true;
+                            if (!itemList.isEmpty() && i < itemList.size()) {
+                                SpinnerEditText.this.setText(selectedContent);
+                                setSelectedItem(itemList.get(i));
+                                setSelectedItemPosition(i);
+                            } else {
+                                setText("");
+                            }
+
+                            setSelection(getText().toString().length());
+                            handler.removeMessages(1);
+                            popupWindow.dismiss();
+                        }
+                    });
+
+                    return convertView;
+                }
+            };
+
+
+            listView.setAdapter(adapter);
+            popupWindow.setWidth(AbsListView.LayoutParams.WRAP_CONTENT);
+            popupWindow.setHeight(AbsListView.LayoutParams.WRAP_CONTENT);
+            popupWindow.setSoftInputMode(ListPopupWindow.INPUT_METHOD_NEEDED);
+
+            popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+                @Override
+                public void onDismiss() {
+                    handler.sendEmptyMessageDelayed(4, 100);
+                }
+            });
+
+
+            popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            popupWindow.setAnimationStyle(R.style.AnimationFromButtom);
+            setCancelable();
+        }
+        adapter.notifyDataSetChanged();
     }
+
+    private int willShowHeight;
+
+    private void updateHeightAndShow() {
+        post(new Runnable() {
+            @Override
+            public void run() {
+
+                willShowHeight = realShowItemList.size() * childHeight;
+                if (willShowHeight > maxHeight) {
+                    willShowHeight = maxHeight;
+                }
+
+                Rect rect = new Rect();
+                getGlobalVisibleRect(rect);
+
+                if (autoCheckShowType) {
+                    if (rect.top <= willShowHeight) {
+                        showType = TYPE_DOWN;
+                    } else {
+                        showType = TYPE_UP;
+                    }
+                }
+
+
+                if (willShowHeight < getHeight())
+                    willShowHeight = getHeight();
+
+
+                popupWindow.setHeight(willShowHeight);
+                listView.setLayoutParams(new FrameLayout.LayoutParams(getWidth(), willShowHeight));
+
+                initOrUpdateListPopupWindow();
+
+
+                if (showType == TYPE_UP) {
+                    showAsPopUp(SpinnerEditText.this);
+                } else {
+                    showAsPopBottom(SpinnerEditText.this);
+                }
+
+            }
+        });
+    }
+
+    /**
+     * anchor上方
+     *
+     * @param anchor
+     */
+    public void showAsPopUp(View anchor) {
+        showAsPopUp(anchor, 0, SystemUtil.dp2px(context, 0));
+    }
+
+    public void showAsPopBottom(View anChor) {
+        popupWindow.showAsDropDown(anChor, 0, 0);
+    }
+
+    private void showAsPopUp(View anchor, int xoff, int yoff) {
+        popupWindow.setAnimationStyle(R.style.AnimationUpPopup);
+        popupView.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        int[] location = new int[2];
+        anchor.getLocationInWindow(location);
+
+
+        //计算显示位置 如果高度不够自动调整到合适高度
+        int offsetY = -getHeight() - willShowHeight;
+        if (offsetY + location[1] < 0) {
+            popupWindow.setHeight(location[1] - getHeight() / 2);
+            listView.setLayoutParams(new FrameLayout.LayoutParams(getWidth(), location[1] - getHeight() / 2));
+        }
+
+        popupWindow.showAsDropDown(anchor, 0, offsetY);
+    }
+
+    public void setCancelable() {
+        popupWindow.setOutsideTouchable(true);
+        popupWindow.setFocusable(false);
+    }
+
+    private static final int TYPE_UP = 0;
+    public static final int TYPE_DOWN = 1;
+    public int showType = TYPE_UP;
+
+    private boolean autoCheckShowType;
+
+    public void setShowType(int showType) {
+        this.showType = showType;
+    }
+
+    public void setAutoCheckShowType(boolean autoCheckShowType) {
+        this.autoCheckShowType = autoCheckShowType;
+    }
+
+    public void dismissPop() {
+        if (popupWindow != null)
+            popupWindow.dismiss();
+    }
+
+
+    //------------------------------初始化Popupwindow ----------------------------
 
 }
