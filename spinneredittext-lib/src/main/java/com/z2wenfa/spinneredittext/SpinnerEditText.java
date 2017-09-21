@@ -61,36 +61,17 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
     private boolean isNecessary = false;//是否是必须条件
     private boolean autoCheckStatusByTextIsEmpty = false;//是否自动判断状态通过判断文本是否异常
-    private int status = STATUS_NORMAL;
+    private int status = STATUS_NORMAL;//当前显示状态 异常状态编辑框 Stoke颜色设置为红色
+
+
+    private static final int TYPE_UP = 0;//Pop向上显示
+
+    public static final int TYPE_DOWN = 1;//pop向下显示
+    public int showType = TYPE_UP;//Popupwindow显示类型
+    private boolean autoCheckShowType = true;
 
     private boolean forbidShowPopOnce = false;//禁止弹出一次Pop选择框
 
-    public int getStatus() {
-        return status;
-    }
-
-    public void autoCheckStatusByTextIsEmpty(Boolean autoCheckStatusByTextIsEmpty) {
-        this.autoCheckStatusByTextIsEmpty = autoCheckStatusByTextIsEmpty;
-        if (TextUtils.isEmpty(getText())) {
-            setStatus(STATUS_EXCEPTION);
-        } else {
-            setStatus(STATUS_NORMAL);
-        }
-    }
-
-    //设置当前SpinnerEdit的状态
-    public void setStatus(int status) {
-        switch (status) {
-            case STATUS_NORMAL:
-                this.status = STATUS_NORMAL;
-                setBackgroundResource(R.drawable.whitebox);
-                break;
-            case STATUS_EXCEPTION:
-                this.status = STATUS_EXCEPTION;
-                setBackgroundResource(R.drawable.whitebox_with_readstroke);
-                break;
-        }
-    }
 
     public SpinnerEditText(Context context) {
         super(context);
@@ -256,13 +237,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         }
     };
 
-    public void setNecessary(boolean necessary) {
-        isNecessary = necessary;
-    }
 
-    public boolean isNecessary() {
-        return isNecessary;
-    }
 
     //优化过后的Popupwindo显示方法
     private void betterShow(String searchStr, long delayTime) {
@@ -643,7 +618,8 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
             popupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             popupWindow.setAnimationStyle(R.style.AnimationFromButtom);
-            setCancelable();
+            popupWindow.setOutsideTouchable(true);
+            popupWindow.setFocusable(false);
         }
         adapter.notifyDataSetChanged();
     }
@@ -722,29 +698,14 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         popupWindow.showAsDropDown(anchor, 0, offsetY);
     }
 
-    public void setCancelable() {
-        popupWindow.setOutsideTouchable(true);
-        popupWindow.setFocusable(false);
-    }
-
-    private static final int TYPE_UP = 0;
-    public static final int TYPE_DOWN = 1;
-    public int showType = TYPE_UP;
-
-    private boolean autoCheckShowType = true;
-
-    public void setShowType(int showType) {
-        this.showType = showType;
-    }
-
-    public void setAutoCheckShowType(boolean autoCheckShowType) {
-        this.autoCheckShowType = autoCheckShowType;
-    }
-
     public void dismissPop() {
         if (popupWindow != null)
             popupWindow.dismiss();
     }
+
+
+    //------------------------------初始化Popupwindow ----------------------------
+
 
     /**
      * 根据手机的分辨率从 DP 的单位 转成为PX(像素)
@@ -754,6 +715,56 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         return (int) (dpValue * scale + 0.5f);
     }
 
-    //------------------------------初始化Popupwindow ----------------------------
+    //-----------设置自动判断Popupwindow显示类型---------------------
 
+    //手动设置显示类型 自动判断显示类型失效
+    public void setShowType(int showType) {
+        this.showType = showType;
+        autoCheckShowType = false;
+    }
+
+    //设置是否自动判断显示类型
+    public void setAutoCheckShowType(boolean autoCheckShowType) {
+        this.autoCheckShowType = autoCheckShowType;
+    }
+
+    //-----------设置自动判断Popupwindow显示类型---------------------
+
+    //-------------------根据文本值为空判断状态是否为异常-----------------
+
+    //获得当前编辑框的状态是否异常
+    public int getStatus() {
+        return status;
+    }
+
+    //设置自动根据文本内容是否为空 设置是否异常
+    public void autoCheckStatusByTextIsEmpty(Boolean autoCheckStatusByTextIsEmpty) {
+        this.autoCheckStatusByTextIsEmpty = autoCheckStatusByTextIsEmpty;
+        if (TextUtils.isEmpty(getText())) {
+            setStatus(STATUS_EXCEPTION);
+        } else {
+            setStatus(STATUS_NORMAL);
+        }
+    }
+
+    //设置当前SpinnerEdit的状态
+    public void setStatus(int status) {
+        if (status == STATUS_NORMAL) {
+            this.status = STATUS_NORMAL;
+            setBackgroundResource(R.drawable.whitebox);
+
+        } else if (status == STATUS_EXCEPTION) {
+            this.status = STATUS_EXCEPTION;
+            setBackgroundResource(R.drawable.whitebox_with_readstroke);
+        }
+    }
+
+    public void setNecessary(boolean necessary) {
+        isNecessary = necessary;
+    }
+
+    public boolean isNecessary() {
+        return isNecessary;
+    }
+    //-------------------根据文本值为空判断状态是否为异常-----------------
 }
