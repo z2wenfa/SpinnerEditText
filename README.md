@@ -3,7 +3,7 @@ Android一个可以下拉模糊匹配的Editext
 
 #	实现效果
 
-![实现效果](https://github.com/z2wenfa/SpinnerEditText/screenshot/test.gif)
+![实现效果](https://github.com/z2wenfa/SpinnerEditText/blob/master/screenshot/test.gif)
 
 # 实现功能
 
