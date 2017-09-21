@@ -1,4 +1,4 @@
-package com.example.z2wenfa.spinneredittextdemo;
+package com.z2wenfa.spinneredittext;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -138,7 +138,6 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
             @Override
             public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-//                Log.d(TAG, "onPrepareActionMode");
                 return false;
             }
 
@@ -149,19 +148,11 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
             @Override
             public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-//                Log.d(TAG, "onActionItemClicked");
                 return false;
             }
         });
 
         this.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-
-//        setOnLongClickListener(new OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View v) {
-//                return true;
-//            }
-//        });
 
         //文本变换事件
         addTextChangedListener(new TextWatchAdapter() {
@@ -673,7 +664,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                 getGlobalVisibleRect(rect);
 
                 if (autoCheckShowType) {
-                    if (rect.top <= willShowHeight) {
+                    if (rect.top <= willShowHeight || willShowHeight < maxHeight) {
                         showType = TYPE_DOWN;
                     } else {
                         showType = TYPE_UP;
@@ -740,7 +731,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
     public static final int TYPE_DOWN = 1;
     public int showType = TYPE_UP;
 
-    private boolean autoCheckShowType;
+    private boolean autoCheckShowType = true;
 
     public void setShowType(int showType) {
         this.showType = showType;

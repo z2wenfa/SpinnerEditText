@@ -11,6 +11,8 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:orientation="horizontal">
 
         <TextView
@@ -20,7 +22,7 @@
             android:layout_gravity="center"
             android:text="名称:" />
 
-        <com.example.z2wenfa.spinneredittextdemo.SpinnerEditText
+        <com.z2wenfa.spinneredittext.SpinnerEditText
             android:id="@+id/set_name"
             android:layout_width="0dp"
             android:layout_height="40dp"

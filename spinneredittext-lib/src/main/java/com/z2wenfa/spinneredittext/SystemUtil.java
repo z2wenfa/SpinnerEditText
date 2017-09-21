@@ -1,4 +1,4 @@
-package com.example.z2wenfa.spinneredittextdemo;
+package com.z2wenfa.spinneredittext;
 
 
 import android.content.Context;

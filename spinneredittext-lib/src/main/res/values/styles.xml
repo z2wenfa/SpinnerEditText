@@ -1,0 +1,21 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="AnimationFromButtom">
+        <item name="android:windowEnterAnimation">@anim/popup_from_bottom</item>
+        <item name="android:windowExitAnimation">@anim/drop_down_to_bottom</item>
+    </style>
+
+
+    <style name="AnimationUpPopup">
+        <item name="android:windowEnterAnimation">@anim/grow_fade_in_from_bottom</item>
+        <item name="android:windowExitAnimation">@anim/shrink_fade_out_from_bottom</item>
+    </style>
+</resources>

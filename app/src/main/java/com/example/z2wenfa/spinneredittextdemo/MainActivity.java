@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import com.z2wenfa.spinneredittext.SpinnerEditText;
+
 import java.util.ArrayList;
 import java.util.List;
 
