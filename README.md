@@ -3,7 +3,7 @@ Android一个可以下拉模糊匹配的Editext
 
 #	实现效果
 
-![](https://github.com/z2wenfa/SpinnerEditText/tree/master/screenshot/test.gif)
+![效果演示](https://github.com/z2wenfa/SpinnerEditText/tree/master/screenshot/test.gif)
 
 # 实现功能
 
@@ -17,7 +17,7 @@ Android一个可以下拉模糊匹配的Editext
  
  	> 
  	在父布局添加:<br>
- 	android:focusable="true" 
+ 	android:focusable="true" <br>
    android:focusableInTouchMode="true"
  	
  	 
