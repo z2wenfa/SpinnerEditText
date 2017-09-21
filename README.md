@@ -1,9 +1,9 @@
 # SpinnerEditText<T>
 Android一个可以下拉模糊匹配的Editext
 
-# 效果
-![演示图片]()
+#	实现效果
 
+![演示效果](https://github.com/z2wenfa/SpinnerEditText/tree/master/screenshot/test.gif)
 
 # 实现功能
 
@@ -19,3 +19,6 @@ Android一个可以下拉模糊匹配的Editext
  	在父布局添加:<br>
  	android:focusable="true" 
    android:focusableInTouchMode="true"
+ 	
+ 	 
+  
