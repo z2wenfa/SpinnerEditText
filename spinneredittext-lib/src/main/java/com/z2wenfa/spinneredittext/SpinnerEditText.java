@@ -122,8 +122,8 @@ public class SpinnerEditText<T> extends AppCompatEditText {
     private void init() {
 
         setLongClickable(false);
-        maxHeight = SystemUtil.dp2px(context, 120);
-        childHeight = SystemUtil.dp2px(context, 40);
+        maxHeight = dp2px(context, 120);
+        childHeight = dp2px(context, 40);
         setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);//设置字体大小
 
 
@@ -202,8 +202,8 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
 
         setRightCompoundDrawable(R.drawable.vector_drawable_arrowdown);
-        int paddingleft = SystemUtil.dp2px(context, 5);
-        int paddingright = SystemUtil.dp2px(context, 10);
+        int paddingleft = dp2px(context, 5);
+        int paddingright = dp2px(context, 10);
         setPadding(paddingleft, 0, paddingright, 0);
 
         setDrawableRightListener(new DrawableRightListener() {
@@ -289,8 +289,8 @@ public class SpinnerEditText<T> extends AppCompatEditText {
     //设置右侧图标
     public void setRightCompoundDrawable(int resId) {
 
-        int start = SystemUtil.dp2px(getContext(), 0);
-        int end = SystemUtil.dp2px(getContext(), 20);
+        int start = dp2px(getContext(), 0);
+        int end = dp2px(getContext(), 20);
         Drawable drawable = null;
         if (resId > 0) {
             drawable = getContext().getResources().getDrawable(resId);
@@ -478,7 +478,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                     Rect rect = new Rect();
                     getGlobalVisibleRect(rect);
 
-                    rect.left = rect.right - SystemUtil.dp2px(context, 48);
+                    rect.left = rect.right - dp2px(context, 48);
                     if (rect.contains(eventX, eventY)) {
                         return true;
                     }
@@ -503,7 +503,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                     Rect rect = new Rect();
                     getGlobalVisibleRect(rect);
 
-                    rect.left = rect.right - SystemUtil.dp2px(context, 48);
+                    rect.left = rect.right - dp2px(context, 48);
                     if (rect.contains(eventX, eventY)) {
                         mRightListener.onDrawableRightClick(this);
                         return true;
@@ -698,7 +698,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
      * @param anchor
      */
     public void showAsPopUp(View anchor) {
-        showAsPopUp(anchor, 0, SystemUtil.dp2px(context, 0));
+        showAsPopUp(anchor, 0, dp2px(context, 0));
     }
 
     public void showAsPopBottom(View anChor) {
@@ -746,6 +746,13 @@ public class SpinnerEditText<T> extends AppCompatEditText {
             popupWindow.dismiss();
     }
 
+    /**
+     * 根据手机的分辨率从 DP 的单位 转成为PX(像素)
+     */
+    public static int dp2px(Context context, float dpValue) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (dpValue * scale + 0.5f);
+    }
 
     //------------------------------初始化Popupwindow ----------------------------
 
