@@ -1,6 +1,26 @@
 # SpinnerEditText<T>
 Android一个可以下拉模糊匹配的Editext
 
+## 使用方法
+
+Step1:
+
+>
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+
+Step2:
+
+>
+	dependencies {
+	        compile 'com.github.z2wenfa:SpinnerEditText:v1.0'
+	}
+
+
 #	实现效果
 
  ![实现效果](https://github.com/z2wenfa/SpinnerEditText/blob/master/screenshot/test.gif)
