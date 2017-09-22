@@ -5,7 +5,6 @@
       <module fileurl="file://$PROJECT_DIR$/SpinnerEditText.iml" filepath="$PROJECT_DIR$/SpinnerEditText.iml" />
       <module fileurl="file://$PROJECT_DIR$/SpinnerEditTextDemo.iml" filepath="$PROJECT_DIR$/SpinnerEditTextDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/spinneredittext-lib/spinneredittext-lib.iml" filepath="$PROJECT_DIR$/spinneredittext-lib/spinneredittext-lib.iml" />
     </modules>
   </component>
