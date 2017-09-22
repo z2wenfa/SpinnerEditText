@@ -17,7 +17,7 @@ Step2:
 
 >
 	dependencies {
-	        compile 'com.github.z2wenfa:SpinnerEditText:v1.0'
+	        compile 'com.github.z2wenfa:SpinnerEditText:0.9'
 	}
 
 
