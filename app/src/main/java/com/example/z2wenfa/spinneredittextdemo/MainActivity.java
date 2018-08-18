@@ -1,7 +1,7 @@
 package com.example.z2wenfa.spinneredittextdemo;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Toast;
 
@@ -16,17 +16,21 @@ public class MainActivity extends AppCompatActivity {
 
     private SpinnerEditText<BaseBean> set_exception;
 
+    private SpinnerEditText<BaseBean> set_diy_att;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initSpinnerEditText1();
+        initSpinnerEditText();
 
-        initSpinnerEditText2();
+        initCheckExceptionSpinnerEditText();
+
+        initDIYAttSpinnerEditText();
     }
 
-    private void initSpinnerEditText1() {
+    private void initSpinnerEditText() {
         set_name = (SpinnerEditText<BaseBean>) findViewById(R.id.set_name);
 
         set_name.setRightCompoundDrawable(R.drawable.vector_drawable_arrowdown);
@@ -53,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void initSpinnerEditText2() {
+    private void initCheckExceptionSpinnerEditText() {
         set_exception = (SpinnerEditText<BaseBean>) findViewById(R.id.set_exception);
 
         set_exception.setRightCompoundDrawable(R.drawable.vector_drawable_arrowdown);
@@ -67,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
         List<BaseBean> baseBeanList = new ArrayList<>();
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 20; i++) {
             BaseBean baseBean = new BaseBean();
             baseBean.Name = "学生:" + i;
             baseBean.Id = i;
@@ -81,6 +85,30 @@ public class MainActivity extends AppCompatActivity {
 
         //设置根据文本是否为空判断是否异常
         set_exception.autoCheckStatusByTextIsEmpty(true);
+    }
+
+    private void initDIYAttSpinnerEditText(){
+        set_diy_att= (SpinnerEditText<BaseBean>) findViewById(R.id.set_div_att);
+        set_diy_att.setRightCompoundDrawable(R.drawable.vector_drawable_arrowdown);
+
+        set_diy_att.setOnItemClickListener(new SpinnerEditText.OnItemClickListener<BaseBean>() {
+            @Override
+            public void onItemClick(BaseBean baseBean, SpinnerEditText<BaseBean> var1, View var2, int position, long var4, String selectContent) {
+                showToast("名称:" + baseBean.Name + " Id:" + baseBean.Id);
+            }
+        });
+
+        List<BaseBean> baseBeanList = new ArrayList<>();
+
+        for (int i = 0; i < 20; i++) {
+            BaseBean baseBean = new BaseBean();
+            baseBean.Name = "学生:" + i;
+            baseBean.Id = i;
+            baseBeanList.add(baseBean);
+        }
+        set_diy_att.setNeedShowSpinner(true);
+
+        set_diy_att.setList(baseBeanList);
     }
 
     public static class BaseBean {
