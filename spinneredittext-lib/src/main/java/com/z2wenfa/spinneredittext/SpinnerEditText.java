@@ -2,6 +2,7 @@ package com.z2wenfa.spinneredittext;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
@@ -11,7 +12,6 @@ import android.os.Message;
 import android.support.v7.widget.AppCompatEditText;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -39,8 +39,9 @@ import java.util.Map;
  * 2.点击列表内容能够修改编辑框显示文本 同时出发文本修改变化事件 文本修改后光标改到文本末尾 (完成)
  * 3.当Foucs发生变化且是选中时显示相关列表内容(完成)
  * 4.点击选中项触发事件 获得选中的Bean (完成)
- * 5.添加pop_textsize设置pop的文本大小,添加pop_textcolor设置pop的文本颜色。
- * 6.添加pop_height自定义弹出框的高度
+ * 5.移除固定的TextSize值,允许自定义。(完成 2018.8.18)
+ * 6.添加pop_textsize设置pop的文本大小,添加pop_textcolor设置pop的文本颜色。(完成)
+ * 7.添加pop_height自定义弹出框的高度,pop_max_height设置pop最大高度。
  * <p>
  * Created by z2wenfa on 2017/2/14.
  */
@@ -76,8 +77,9 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
     private boolean forbidShowPopOnce = false;//禁止弹出一次Pop选择框
 
-
-    private static final String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";
+    private int pop_textColor;
+    private float pop_textSize;
+    private float pop_height;
 
     public SpinnerEditText(Context context) {
         super(context);
@@ -106,7 +108,15 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         return super.onTextContextMenuItem(id);
     }
 
+
     private void init(AttributeSet attrs) {
+
+        if (attrs != null) {
+            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.SpinnerEditText);
+            pop_textColor = typedArray.getColor(R.styleable.SpinnerEditText_pop_textcolor, Color.BLACK);
+            pop_textSize = typedArray.getDimension(R.styleable.SpinnerEditText_pop_textsize, 0f);
+            pop_height = typedArray.getDimension(R.styleable.SpinnerEditText_pop_height, 20f);
+        }
 
         setLongClickable(false);
         maxHeight = dp2px(context, 20);
@@ -551,6 +561,10 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                         holder.itemTextView = (TextView) convertView.findViewById(R.id.tv);
                         convertView.setTag(holder);
 
+                        if (pop_textColor != 0)
+                            holder.itemTextView.setTextColor(pop_textColor);
+                        if (pop_textSize != 0)
+                            holder.itemTextView.setTextSize(px2dp(context,pop_textSize));
 
                     } else {
                         holder = (ViewHolder) convertView.getTag();
@@ -714,6 +728,14 @@ public class SpinnerEditText<T> extends AppCompatEditText {
     public static int dp2px(Context context, float dpValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
+    }
+
+    /**
+     * 将px转换为与之相等的dp
+     */
+    public static int px2dp(Context context, float pxValue) {
+        final float scale =  context.getResources().getDisplayMetrics().density;
+        return (int) (pxValue / scale + 0.5f);
     }
 
     //-----------设置自动判断Popupwindow显示类型---------------------

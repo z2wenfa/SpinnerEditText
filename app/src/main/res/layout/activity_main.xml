@@ -28,6 +28,9 @@
             android:layout_height="40dp"
             android:layout_weight="1"
             android:textSize="16dp"
+            app:pop_height="40dp"
+            app:pop_textcolor="@color/colorPrimary"
+            app:pop_textsize="12dp"
             android:background="@drawable/whitebox" />
     </LinearLayout>
 
