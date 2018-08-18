@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
         List<BaseBean> baseBeanList = new ArrayList<>();
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 1; i++) {
             BaseBean baseBean = new BaseBean();
             baseBean.Name = "学生:" + i;
             baseBean.Id = i;

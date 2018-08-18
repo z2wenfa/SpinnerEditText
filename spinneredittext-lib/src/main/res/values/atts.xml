@@ -3,6 +3,7 @@
     <declare-styleable name="SpinnerEditText">
         <attr name="pop_textsize" format="dimension"/>
         <attr name="pop_textcolor" format="color"/>
-        <attr name="pop_height" format="dimension"/>
+        <attr name="pop_min_height" format="dimension"/>
+        <attr name="pop_max_height" format="dimension"/>
     </declare-styleable>
 </resources>

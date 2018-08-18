@@ -48,7 +48,6 @@ import java.util.Map;
 
 public class SpinnerEditText<T> extends AppCompatEditText {
     private Context context;
-    private int maxHeight;
     private int childHeight;
 
 
@@ -79,7 +78,8 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
     private int pop_textColor;
     private float pop_textSize;
-    private float pop_height;
+    private float pop_minHeight;
+    private float pop_maxHeight;
 
     public SpinnerEditText(Context context) {
         super(context);
@@ -115,11 +115,11 @@ public class SpinnerEditText<T> extends AppCompatEditText {
             TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.SpinnerEditText);
             pop_textColor = typedArray.getColor(R.styleable.SpinnerEditText_pop_textcolor, Color.BLACK);
             pop_textSize = typedArray.getDimension(R.styleable.SpinnerEditText_pop_textsize, 0f);
-            pop_height = typedArray.getDimension(R.styleable.SpinnerEditText_pop_height, 20f);
+            pop_minHeight = typedArray.getDimension(R.styleable.SpinnerEditText_pop_min_height, 40f);
+            pop_maxHeight = typedArray.getDimension(R.styleable.SpinnerEditText_pop_max_height, 0f);
         }
 
         setLongClickable(false);
-        maxHeight = dp2px(context, 20);
         childHeight = dp2px(context, 40);
 
         this.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
@@ -564,7 +564,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                         if (pop_textColor != 0)
                             holder.itemTextView.setTextColor(pop_textColor);
                         if (pop_textSize != 0)
-                            holder.itemTextView.setTextSize(px2dp(context,pop_textSize));
+                            holder.itemTextView.setTextSize(px2dp(context, pop_textSize));
 
                     } else {
                         holder = (ViewHolder) convertView.getTag();
@@ -647,15 +647,15 @@ public class SpinnerEditText<T> extends AppCompatEditText {
             public void run() {
 
                 willShowHeight = realShowItemList.size() * childHeight;
-                if (willShowHeight > maxHeight) {
-                    willShowHeight = maxHeight;
+                if (pop_maxHeight > 0 && willShowHeight > pop_maxHeight) {
+                    willShowHeight = (int) pop_maxHeight;
                 }
 
                 Rect rect = new Rect();
                 getGlobalVisibleRect(rect);
 
                 if (autoCheckShowType) {
-                    if (rect.top <= willShowHeight || willShowHeight < maxHeight) {
+                    if (rect.top <= willShowHeight || willShowHeight < pop_maxHeight) {
                         showType = TYPE_DOWN;
                     } else {
                         showType = TYPE_UP;
@@ -663,9 +663,8 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                 }
 
 
-                if (willShowHeight < getHeight())
-                    willShowHeight = getHeight();
-
+                if (willShowHeight < pop_minHeight)
+                    willShowHeight = (int) pop_minHeight;
 
                 popupWindow.setHeight(willShowHeight);
                 listView.setLayoutParams(new FrameLayout.LayoutParams(getWidth(), willShowHeight));
@@ -734,7 +733,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
      * 将px转换为与之相等的dp
      */
     public static int px2dp(Context context, float pxValue) {
-        final float scale =  context.getResources().getDisplayMetrics().density;
+        final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (pxValue / scale + 0.5f);
     }
 
