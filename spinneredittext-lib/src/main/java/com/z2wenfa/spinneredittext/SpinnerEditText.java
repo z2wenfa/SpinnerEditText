@@ -1,5 +1,6 @@
 package com.z2wenfa.spinneredittext;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -37,7 +38,9 @@ import java.util.Map;
  * 1.获得一个列表内容 在编辑框文本变化时 动态显示相关列表内容 (完成)
  * 2.点击列表内容能够修改编辑框显示文本 同时出发文本修改变化事件 文本修改后光标改到文本末尾 (完成)
  * 3.当Foucs发生变化且是选中时显示相关列表内容(完成)
- * 4.点击选中项触发事件 获得选中的Bean
+ * 4.点击选中项触发事件 获得选中的Bean (完成)
+ * 5.添加pop_textsize设置pop的文本大小,添加pop_textcolor设置pop的文本颜色。
+ * 6.添加pop_height自定义弹出框的高度
  * <p>
  * Created by z2wenfa on 2017/2/14.
  */
@@ -65,30 +68,33 @@ public class SpinnerEditText<T> extends AppCompatEditText {
 
 
     private static final int TYPE_UP = 0;//Pop向上显示
+    public static final int TYPE_DOWN = 1;//Pop向下显示
 
-    public static final int TYPE_DOWN = 1;//pop向下显示
     public int showType = TYPE_UP;//Popupwindow显示类型
-    private boolean autoCheckShowType = true;
+
+    private boolean autoCheckShowType = true;//自动根据Pop的高端选择显示在文本框的上方还是下方
 
     private boolean forbidShowPopOnce = false;//禁止弹出一次Pop选择框
 
 
+    private static final String NAMESPACE_ANDROID = "http://schemas.android.com/apk/res/android";
+
     public SpinnerEditText(Context context) {
         super(context);
         this.context = context;
-        init();
+        init(null);
     }
 
     public SpinnerEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.context = context;
-        init();
+        init(attrs);
     }
 
     public SpinnerEditText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
-        init();
+        init(attrs);
     }
 
 
@@ -100,20 +106,16 @@ public class SpinnerEditText<T> extends AppCompatEditText {
         return super.onTextContextMenuItem(id);
     }
 
-    private void init() {
+    private void init(AttributeSet attrs) {
 
         setLongClickable(false);
-        maxHeight = dp2px(context, 120);
+        maxHeight = dp2px(context, 20);
         childHeight = dp2px(context, 40);
-        setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);//设置字体大小
-
 
         this.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
 
             @Override
             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-
-//                showPopWindow();
                 return false;
             }
 
@@ -220,7 +222,6 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                     break;
                 case 2:
                     setSelectedItem(null);
-//                    getOnFocusChangeListener().onFocusChange(SpinnerEditText.this, true);
                     if (popupWindow != null && isFocused()) {
                         betterShow(getText().toString(), 250);
                     } else {
@@ -238,7 +239,6 @@ public class SpinnerEditText<T> extends AppCompatEditText {
     };
 
 
-
     //优化过后的Popupwindo显示方法
     private void betterShow(String searchStr, long delayTime) {
 
@@ -253,7 +253,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
                 return;
             }
 
-            Message message = new Message();
+            Message message = Message.obtain();
             message.what = 1;
             message.obj = searchStr;
             handler.sendMessageDelayed(message, delayTime);
@@ -511,6 +511,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
     }
 
 
+    @SuppressLint("WrongConstant")
     private void initOrUpdateListPopupWindow() {
 
         if (popupWindow == null) {

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SpinnerEditText">
+        <attr name="pop_textsize" format="dimension"/>
+        <attr name="pop_textcolor" format="color"/>
+        <attr name="pop_height" format="dimension"/>
+    </declare-styleable>
+</resources>
