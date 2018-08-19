@@ -40,8 +40,8 @@ import java.util.Map;
  * 3.当Foucs发生变化且是选中时显示相关列表内容(完成)
  * 4.点击选中项触发事件 获得选中的Bean (完成)
  * 5.移除固定的TextSize值,允许自定义。(完成 2018.8.18)
- * 6.添加pop_textsize设置pop的文本大小,添加pop_textcolor设置pop的文本颜色。(完成)
- * 7.添加pop_height自定义弹出框的高度,pop_max_height设置pop最大高度。
+ * 6.添加pop_textsize设置pop的文本大小,添加pop_textcolor设置pop的文本颜色。(完成 2018.8.18)
+ * 7.添加pop_height自定义弹出框的高度,pop_max_height设置pop最大高度。(完成 2018.8.18)
  * <p>
  * Created by z2wenfa on 2017/2/14.
  */
