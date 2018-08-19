@@ -17,7 +17,7 @@ Step2:
 
 >
 	dependencies {
-	        compile 'com.github.z2wenfa:SpinnerEditText:0.9'
+	        compile 'com.github.z2wenfa:SpinnerEditText:1.0.1'
 	}
 
 
@@ -38,8 +38,13 @@ Step2:
          
            //设置根据文本是否为空判断是否异常    
            set_exception.autoCheckStatusByTextIsEmpty(true);
-       
- 
+ 5. 下拉框Pop的自定义属性:
+  ```
+     app:pop_min_height  下拉框最小高度
+     app:pop_max_height  下拉框最大高度
+     app:pop_textcolor   下拉框中Item文本颜色
+     app:pop_textsize    下拉框中Item文本大小
+  ```
 # 常见问题解决
  1. 进入界面后自动触发焦点事件,下拉选择框自动出现:
   
