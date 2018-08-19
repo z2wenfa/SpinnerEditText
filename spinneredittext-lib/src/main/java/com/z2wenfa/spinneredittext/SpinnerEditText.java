@@ -117,6 +117,7 @@ public class SpinnerEditText<T> extends AppCompatEditText {
             pop_textSize = typedArray.getDimension(R.styleable.SpinnerEditText_pop_textsize, 0f);
             pop_minHeight = typedArray.getDimension(R.styleable.SpinnerEditText_pop_min_height, 40f);
             pop_maxHeight = typedArray.getDimension(R.styleable.SpinnerEditText_pop_max_height, 0f);
+            typedArray.recycle();
         }
 
         setLongClickable(false);
